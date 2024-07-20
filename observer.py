@@ -297,7 +297,7 @@ def main(refresh=None, page=0, per_page=None, first=None, last=None, style=None)
     stake = FutureJSON(omq, oxend, 'rpc.get_staking_requirement', 10)
     base_fee = FutureJSON(omq, oxend, 'rpc.get_fee_estimate', 10)
     hfinfo = FutureJSON(omq, oxend, 'rpc.hard_fork_info', 10)
-    accrued = FutureJSON(omq, oxend, 'rpc.get_accrued_batched_earnings', 1)
+    rewards = FutureJSON(omq, oxend, 'rpc.get_accrued_rewards', 1)
     mempool = get_mempool_future(omq, oxend)
     sns = get_sns_future(omq, oxend)
     checkpoints = FutureJSON(omq, oxend, 'rpc.get_checkpoints', args={"count": 3})
@@ -373,17 +373,17 @@ def main(refresh=None, page=0, per_page=None, first=None, last=None, style=None)
     # Clean up the SN data a bit to make things easier for the templates
     awaiting_sns, active_sns, inactive_sns = get_sns(sns, inforeq)
 
-    accrued = accrued.get()
-    accrued_total = (
-            sum(amt for wallet, amt in accrued['balances'].items()) if 'balances' in accrued else
-            sum(accrued['amounts']))
+    rewards = rewards.get()
+    rewards_total = (
+            sum(amt for wallet, amt in rewards['balances'].items()) if 'balances' in rewards else
+            sum(rewards['amounts']))
 
     return flask.render_template('index.html',
             info=info,
             stake=stake.get(),
             fees=base_fee.get(),
             emission=coinbase.get(),
-            accrued_total=accrued_total,
+            accrued_total=rewards_total,
             hf=hfinfo.get(),
             active_sns=active_sns,
             active_swarms=len(set(x['swarm_id'] for x in active_sns)),
